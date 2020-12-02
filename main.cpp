@@ -58,7 +58,7 @@ int main()
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {
-            #pragma omp parallel for shared(matriz)
+            
             for (DIM1 j = 0; j < n; j++)
             {
                 if (matriz[i][j] != MAX_DIM2)
@@ -85,7 +85,6 @@ int main()
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {
-            #pragma omp parallel for shared(matriz)
             for (DIM1 i = 0; i < n; i++)
             {
                 if (matriz[i][j] != MAX_DIM2)
@@ -120,7 +119,6 @@ int main()
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {
-            #pragma omp parallel for shared(matriz)
             for (DIM1 j = 0; j < n; j++)
             {
                 if (matriz[i][j] != MAX_DIM2)
@@ -143,7 +141,6 @@ int main()
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {
-            #pragma omp parallel for shared(matriz)
             for (DIM1 i = 0; i < n; i++)
             {
                 if (matriz[i][j] != MAX_DIM2)
