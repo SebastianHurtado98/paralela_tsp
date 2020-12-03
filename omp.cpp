@@ -1,6 +1,8 @@
 #include <iostream>
 #include <limits>
 #include <omp.h>
+#include <algorithm>
+#include <iterator>
 #include <iomanip>
 
 using namespace std;
@@ -58,6 +60,7 @@ int main()
                 min = matriz[i][j];
             }
         }
+
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {
@@ -89,6 +92,7 @@ int main()
                 min = matriz[j][i];
             }
         }
+        
         //SUBSTRACT MIN VALUE
         if (min != 0 && min != MAX_DIM2)
         {

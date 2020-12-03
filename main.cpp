@@ -20,8 +20,6 @@ int main()
     cin >> n;
     DIM2 **matriz = new DIM2 *[n];
 
-    omp_set_num_threads(6);
-
     double t1 = omp_get_wtime();
 
     DIM1 i;
