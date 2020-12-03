@@ -73,9 +73,13 @@ int main(int argc, char **argv)
     int rank;
     int size;
 
+    omp_set_num_threads(4);
+
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+
+    double t1 = MPI_Wtime();
 
     if (rank == 0)
     {
@@ -115,14 +119,14 @@ int main(int argc, char **argv)
 
     if (rank != 0)
     {
-        for (int i = 0; i < n; i++)
-        {
-            for (int j = 0; j < n; j++)
-            {
-                cout << matrix[(i * n) + j] << "    ";
-            }
-            cout << endl;
-        }
+        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
+    }
+
+    double t2 = MPI_Wtime();
+
+    if (rank == 0)
+    {
+        cout << "MPI Time: " << t2 - t1 << endl;
     }
 
     MPI_Finalize();
