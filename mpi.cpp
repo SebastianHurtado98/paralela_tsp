@@ -7,6 +7,63 @@
 
 using namespace std;
 
+int get_min_and_substract(int n, int mat[], int &rc)
+{
+    int i, min;
+
+    #pragma omp parallel for private(i, min) shared(mat, rc)
+    for (int i = 0; i < n; i++)
+    {
+        int min = INT_MAX;
+        for (int j = 0; j < n; j++)
+        {
+            if (min > mat[(i * n) + j])
+            {
+                min = mat[(i * n) + j];
+            }
+        }
+
+        if (min != 0 && min != INT_MAX)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                if (mat[(i * n) + j] != INT_MAX)
+                {
+                    mat[(i * n) + j] -= min;
+                }
+            }
+        }
+        rc += min;
+    }
+
+    #pragma omp parallel for private(i, min) shared(mat, rc)
+    for (int j = 0; j < n; j++)
+    {
+        int min = INT_MAX;
+        for (int i = 0; i < n; i++)
+        {
+            if (min > mat[(i * n) + j])
+            {
+                min = mat[(i * n) + j];
+            }
+        }
+
+        if (min != 0 && min != INT_MAX)
+        {
+            for (int i = 0; i < n; i++)
+            {
+                if (mat[(i * n) + j] != INT_MAX)
+                {
+                    mat[(i * n) + j] -= min;
+                }
+            }
+        }
+        rc += min;
+    }
+
+    return rc;
+}
+
 int main(int argc, char **argv)
 {
 
@@ -43,6 +100,8 @@ int main(int argc, char **argv)
                 }
             }
         }
+
+        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
