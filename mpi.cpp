@@ -7,13 +7,17 @@
 
 using namespace std;
 
-int get_min_and_substract(int n, int mat[], int &rc)
+int get_min_and_substract(int n, int mat[], int prev_rc)
 {
     int i, min;
+    int *rc = new int[n];
 
+    
     #pragma omp parallel for private(i, min) shared(mat, rc)
     for (int i = 0; i < n; i++)
     {
+        rc[i] = 0;
+        /*
         int min = INT_MAX;
         for (int j = 0; j < n; j++)
         {
@@ -32,13 +36,18 @@ int get_min_and_substract(int n, int mat[], int &rc)
                     mat[(i * n) + j] -= min;
                 }
             }
+            rc[i] = min;
+        } else {
+            rc[i] = 0;
         }
-        rc += min;
+        */
     }
-
+    
     #pragma omp parallel for private(i, min) shared(mat, rc)
     for (int j = 0; j < n; j++)
     {
+        rc[i] = 1;
+        /*
         int min = INT_MAX;
         for (int i = 0; i < n; i++)
         {
@@ -58,10 +67,14 @@ int get_min_and_substract(int n, int mat[], int &rc)
                 }
             }
         }
-        rc += min;
+        rc[i] += min;
+        */
     }
 
-    return rc;
+    int total_rc = 0;
+    for (i = 0; i < n; i++) total_rc += rc[i];
+
+    return prev_rc + 0;
 }
 
 int main(int argc, char **argv)
@@ -105,7 +118,8 @@ int main(int argc, char **argv)
             }
         }
 
-        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
+        int reduced_counter = get_min_and_substract(n, matrix, 0);
+        cout << "From " << rank << " " << reduced_counter << endl;
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -120,6 +134,7 @@ int main(int argc, char **argv)
     if (rank != 0)
     {
         int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
+        cout << "From " << rank << " " << reduced_counter << endl;
     }
 
     double t2 = MPI_Wtime();
