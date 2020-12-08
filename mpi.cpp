@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <vector>
 #include <limits.h>
 #include <fstream>
@@ -7,19 +9,18 @@
 
 using namespace std;
 
-int get_min_and_substract(int n, int mat[], int prev_rc)
+int get_min_and_substract(int n, int mat[])
 {
-    int i, min;
-    int *rc = new int[n];
+    int min;
 
-    
-    #pragma omp parallel for private(i, min) shared(mat, rc)
-    for (int i = 0; i < n; i++)
+    int *rc = new int[n];
+    int i, j;
+
+    #pragma omp parallel for private(j, min) shared(i, mat, rc)
+    for (i = 0; i < n; i++)
     {
-        rc[i] = 0;
-        /*
-        int min = INT_MAX;
-        for (int j = 0; j < n; j++)
+        min = INT_MAX;
+        for (j = 0; j < n; j++)
         {
             if (min > mat[(i * n) + j])
             {
@@ -29,7 +30,7 @@ int get_min_and_substract(int n, int mat[], int prev_rc)
 
         if (min != 0 && min != INT_MAX)
         {
-            for (int j = 0; j < n; j++)
+            for (j = 0; j < n; j++)
             {
                 if (mat[(i * n) + j] != INT_MAX)
                 {
@@ -40,16 +41,13 @@ int get_min_and_substract(int n, int mat[], int prev_rc)
         } else {
             rc[i] = 0;
         }
-        */
     }
-    
-    #pragma omp parallel for private(i, min) shared(mat, rc)
-    for (int j = 0; j < n; j++)
+
+    #pragma omp parallel for private(i, min) shared(j, mat, rc)
+    for (j = 0; j < n; j++)
     {
-        rc[i] = 1;
-        /*
-        int min = INT_MAX;
-        for (int i = 0; i < n; i++)
+        min = INT_MAX;
+        for (i = 0; i < n; i++)
         {
             if (min > mat[(i * n) + j])
             {
@@ -59,22 +57,24 @@ int get_min_and_substract(int n, int mat[], int prev_rc)
 
         if (min != 0 && min != INT_MAX)
         {
-            for (int i = 0; i < n; i++)
+            for (i = 0; i < n; i++)
             {
                 if (mat[(i * n) + j] != INT_MAX)
                 {
                     mat[(i * n) + j] -= min;
                 }
             }
-        }
-        rc[i] += min;
-        */
+            rc[j] += min;
+        }   
     }
 
     int total_rc = 0;
-    for (i = 0; i < n; i++) total_rc += rc[i];
+    for (int i = 0; i < n; i++)
+    {
+        total_rc += rc[i];
+    }
 
-    return prev_rc + 0;
+    return total_rc;
 }
 
 int main(int argc, char **argv)
@@ -118,8 +118,8 @@ int main(int argc, char **argv)
             }
         }
 
-        int reduced_counter = get_min_and_substract(n, matrix, 0);
-        cout << "From " << rank << " " << reduced_counter << endl;
+        int reduced_counter = get_min_and_substract(n, matrix);
+        printf("rc: %i\n", reduced_counter);
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -133,8 +133,8 @@ int main(int argc, char **argv)
 
     if (rank != 0)
     {
-        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
-        cout << "From " << rank << " " << reduced_counter << endl;
+        int reduced_counter = get_min_and_substract(n, matrix);
+        printf("rc: %i\n", reduced_counter);
     }
 
     double t2 = MPI_Wtime();
