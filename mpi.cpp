@@ -81,7 +81,7 @@ int main(int argc, char **argv)
 {
 
     int n;
-    int *matrix;
+    int *matrix, *original_matrix;
 
     int rank;
     int size;
@@ -93,6 +93,7 @@ int main(int argc, char **argv)
     MPI_Comm_size(MPI_COMM_WORLD, &size);
 
     double t1 = MPI_Wtime();
+    
 
     if (rank == 0)
     {
@@ -100,6 +101,7 @@ int main(int argc, char **argv)
         ifs >> n;
 
         matrix = (int *)malloc(n * n * sizeof(int));
+        original_matrix = (int *)malloc(n * n * sizeof(int));
 
         for (int i = 0; i < n; i++)
         {
@@ -120,6 +122,14 @@ int main(int argc, char **argv)
 
         int reduced_counter = get_min_and_substract(n, matrix, 0);
         printf("rc: %i\n", reduced_counter);
+
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                original_matrix[(i * n) + j] = matrix[(i * n) + j];
+            }
+        }
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -127,14 +137,45 @@ int main(int argc, char **argv)
     if (rank != 0)
     {
         matrix = (int *)malloc(n * n * sizeof(int));
+        original_matrix = (int *)malloc(n * n * sizeof(int));
     }
 
     MPI_Bcast(matrix, n * n, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Bcast(original_matrix, n * n, MPI_INT, 0, MPI_COMM_WORLD);
 
     
     if (rank != 0)
-    {
-        int reduced_counter = get_min_and_substract(n, matrix, 1);
+    {   
+        int h_r = 0, h_c = 1;
+        for (int i = 0; i < n; i++) {
+            matrix[(h_r * n) + i] = INT_MAX;
+            matrix[(i * n) + h_c] = INT_MAX;
+        }
+
+        matrix[(h_c*n) + h_r] = INT_MAX;
+        
+        /*
+        cout << endl << "PRINTING MATRIX " << endl;
+        int temp;
+        for (int i = 0; i < n; i++)
+        {
+            for (int j = 0; j < n; j++)
+            {
+                temp = matrix[(i * n) + j];
+                if (temp != INT_MAX)
+                {
+                    cout << matrix[(i * n) + j] << " ";
+                }
+                else
+                {
+                    cout << -1 << " ";
+                }
+            }
+            cout << endl;
+        }
+        */
+
+        int reduced_counter = get_min_and_substract(n, matrix, 25) + original_matrix[(h_r*n) + h_c];
         printf("rc: %i\n", reduced_counter);
     }
 
