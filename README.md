@@ -12,10 +12,13 @@ Crearlo en un archivo aparte: stack.cpp
 - La cantidad de vecinos debe ser superior a la cantidad de procesos, por lo tanto, en una siguiente iteración, enviaremos los nodos restantes a los procesos. 
 - Compara las distancias que te han mandado todos los vecinos (podría ser secuencialmente en algun array).
 - El proceso 0 escoge la menor distancia. Pones el nodo con menor distancia en el stack y repites el procedimiento, obviando nodos ya visitados.
-- El procedimiento termina cuando el stack tenga n-1 nodos visitados.
+- El procedimiento termina cuando el stack tenga n nodos visitados.
 
 ## interrogantes
 Estos son los problemas más grandes que tenemos que resolver para esta implementación:
 - ¿Cómo podemos recibir la distancia del proceso n al proceso 0, y luego comparar todas las distancias?
+    - Gather, Allgather, Gatherv
 - ¿Cómo podemos enviar primero n nodos a n procesos y luego el resto X nodos a X procesos?
-- ¿Cómo podemos iterar este proceso hasta que el stack tenga todos los nodos?  
+    - Scatter, Scatterv
+- ¿Cómo podemos iterar este proceso hasta que el stack tenga todos los nodos?
+    - While (?)
