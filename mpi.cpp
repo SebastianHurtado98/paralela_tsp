@@ -1,4 +1,6 @@
 #include <iostream>
+#include <cstdio>
+#include <cstdlib>
 #include <vector>
 #include <limits.h>
 #include <fstream>
@@ -7,14 +9,15 @@
 
 using namespace std;
 
-int get_min_and_substract(int n, int mat[], int &rc)
+int get_min_and_substract(int n, int mat[])
 {
-    int i, min;
+    int min;
+    int *rc = new int[n];
 
-    #pragma omp parallel for private(i, min) shared(mat, rc)
+    #pragma omp parallel for private(min) shared(mat, rc)
     for (int i = 0; i < n; i++)
     {
-        int min = INT_MAX;
+        min = INT_MAX;
         for (int j = 0; j < n; j++)
         {
             if (min > mat[(i * n) + j])
@@ -32,14 +35,16 @@ int get_min_and_substract(int n, int mat[], int &rc)
                     mat[(i * n) + j] -= min;
                 }
             }
+            rc[i] = min;
+        } else {
+            rc[i] = 0;
         }
-        rc += min;
     }
 
-    #pragma omp parallel for private(i, min) shared(mat, rc)
+    #pragma omp parallel for private(min) shared(mat, rc)
     for (int j = 0; j < n; j++)
     {
-        int min = INT_MAX;
+        min = INT_MAX;
         for (int i = 0; i < n; i++)
         {
             if (min > mat[(i * n) + j])
@@ -57,11 +62,17 @@ int get_min_and_substract(int n, int mat[], int &rc)
                     mat[(i * n) + j] -= min;
                 }
             }
-        }
-        rc += min;
+            rc[j] += min;
+        }   
     }
 
-    return rc;
+    int total_rc = 0;
+    for (int i = 0; i < n; i++)
+    {
+        total_rc += rc[i];
+    }
+
+    return total_rc;
 }
 
 int main(int argc, char **argv)
@@ -105,7 +116,8 @@ int main(int argc, char **argv)
             }
         }
 
-        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
+        int reduced_counter = get_min_and_substract(n, matrix);
+        printf("rc: %i\n", reduced_counter);
     }
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
@@ -119,7 +131,8 @@ int main(int argc, char **argv)
 
     if (rank != 0)
     {
-        int reduced_counter = get_min_and_substract(n, matrix, reduced_counter);
+        int reduced_counter = get_min_and_substract(n, matrix);
+        printf("rc: %i\n", reduced_counter);
     }
 
     double t2 = MPI_Wtime();
