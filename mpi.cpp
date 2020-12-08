@@ -9,7 +9,7 @@
 
 using namespace std;
 
-int get_min_and_substract(int n, int mat[])
+int get_min_and_substract(int n, int mat[], int prev_rc)
 {
     int min;
 
@@ -74,7 +74,7 @@ int get_min_and_substract(int n, int mat[])
         total_rc += rc[i];
     }
 
-    return total_rc;
+    return prev_rc + total_rc;
 }
 
 int main(int argc, char **argv)
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
             }
         }
 
-        int reduced_counter = get_min_and_substract(n, matrix);
+        int reduced_counter = get_min_and_substract(n, matrix, 0);
         printf("rc: %i\n", reduced_counter);
     }
 
@@ -131,9 +131,10 @@ int main(int argc, char **argv)
 
     MPI_Bcast(matrix, n * n, MPI_INT, 0, MPI_COMM_WORLD);
 
+    
     if (rank != 0)
     {
-        int reduced_counter = get_min_and_substract(n, matrix);
+        int reduced_counter = get_min_and_substract(n, matrix, 1);
         printf("rc: %i\n", reduced_counter);
     }
 
