@@ -1,48 +1,49 @@
-#include <iostream>
-#include <limits.h>
 #include <openmpi/mpi.h>
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <iostream>
 using namespace std;
 
-int main()
+int areAllVisited(int *visited, int size)
 {
+    for (int i = 0; i < size; i++)
+    {
+        if (visited[i] == 0)
+            return 0;
+    }
+    return 1;
+}
+
+int main(int argc, char *argv[])
+{
+    int rank, size;
+
     int n;
     int root;
-    int *matrix, *row;
-    int *stack;
-    int *queue;
-    int *visited;
 
-    int rank;
-    int size;
+    int matrix[100];
+    int row[10];
+    int queue[10];
+    int visited[100];
+    int bfs[100];
+
+    /* int *matrix, *row;
+    int *queue, *visited;
+    int *bfs; */
 
     MPI_Init(&argc, &argv);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     if (rank == 0)
     {
-        int n;
         cin >> n;
 
-        stack = (int *)malloc(n * sizeof(int));
-        matrix = (int *)malloc(n * n * sizeof(int));
+        /* matrix = (int *)malloc(n * n * sizeof(int)); */
 
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < n * n; i++)
         {
-            for (int j = 0; j < n; j++)
-            {
-                int temp;
-                cin >> temp;
-                if (temp != -1)
-                {
-                    matrix[(i * n) + j] = temp;
-                }
-                else
-                {
-                    matrix[(i * n) + j] = INT_MAX;
-                }
-            }
+            cin >> matrix[i];
         }
 
         cin >> root;
@@ -51,9 +52,15 @@ int main()
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&root, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
+    /* if (rank != 0)
+    {
+        matrix = (int *)malloc(n * n * sizeof(int));   
+    } */
+    
+    /* bfs = (int *)malloc(n * n * sizeof(int));
     row = (int *)malloc(n * sizeof(int));
     queue = (int *)malloc(n * sizeof(int));
-    visited = (int *)malloc(n * sizeof(int));
+    visited = (int *)malloc(n * n * sizeof(int)); */
 
     MPI_Scatter(matrix, n, MPI_INT, row, n, MPI_INT, 0, MPI_COMM_WORLD);
 
@@ -62,20 +69,20 @@ int main()
         queue[i] = -1;
     }
 
-    int idx = 0;
+    int index = 0;
     if (rank >= root)
     {
         for (int i = 0; i < n; i++)
         {
-            if (row[i] >= 1)
+            if (row[i] != -1)
             {
-                queue[idx++] = i;
+                queue[index++] = i;
             }
         }
     }
 
     cout << "Process " << rank << ": ";
-    for (int i = 0; i < idx; i++)
+    for (int i = 0; i < index; i++)
     {
         cout << queue[i] << " ";
     }
@@ -83,7 +90,7 @@ int main()
 
     MPI_Barrier(MPI_COMM_WORLD);
 
-    MPI_Gather(queue, n, MPI + INT, bfs_traversal, n, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Gather(queue, n, MPI_INT, bfs, n, MPI_INT, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < n; i++)
     {
@@ -92,21 +99,21 @@ int main()
 
     if (rank == 0)
     {
-        cout << "BFS:\n";
+        cout << "\nBFS Traversal: " << endl;
         cout << root;
         for (int i = 0; i < n * n; i++)
         {
-            if (allVisited(visited, n))
+            if (areAllVisited(visited, n))
             {
                 break;
             }
 
-            if (bfs_traversal[i] != -1)
+            if (bfs[i] != -1)
             {
-                if (visited[bfs_traversal[i]] == 0)
+                if (visited[bfs[i]] == 0)
                 {
-                    cout << " -> " << bfs_traversal[i];
-                    visited[bfs_traversal[i]] = 1;
+                    cout << " -> " << bfs[i];
+                    visited[bfs[i]] = 1;
                 }
             }
             else
@@ -117,4 +124,5 @@ int main()
     }
 
     MPI_Finalize();
+    return 0;
 }
