@@ -22,14 +22,10 @@ int main(int argc, char *argv[])
     int root;
 
     int matrix[100];
-    int row[10];
+    int row[100];
     int queue[10];
     int visited[100];
     int bfs[100];
-
-    /* int *matrix, *row;
-    int *queue, *visited;
-    int *bfs; */
 
     MPI_Init(&argc, &argv);
     MPI_Comm_size(MPI_COMM_WORLD, &size);
@@ -38,8 +34,6 @@ int main(int argc, char *argv[])
     if (rank == 0)
     {
         cin >> n;
-
-        /* matrix = (int *)malloc(n * n * sizeof(int)); */
 
         for (int i = 0; i < n * n; i++)
         {
@@ -51,17 +45,7 @@ int main(int argc, char *argv[])
 
     MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
     MPI_Bcast(&root, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
-    /* if (rank != 0)
-    {
-        matrix = (int *)malloc(n * n * sizeof(int));   
-    } */
     
-    /* bfs = (int *)malloc(n * n * sizeof(int));
-    row = (int *)malloc(n * sizeof(int));
-    queue = (int *)malloc(n * sizeof(int));
-    visited = (int *)malloc(n * n * sizeof(int)); */
-
     MPI_Scatter(matrix, n, MPI_INT, row, n, MPI_INT, 0, MPI_COMM_WORLD);
 
     for (int i = 0; i < n; i++)
@@ -121,6 +105,7 @@ int main(int argc, char *argv[])
                 continue;
             }
         }
+        cout << endl;
     }
 
     MPI_Finalize();

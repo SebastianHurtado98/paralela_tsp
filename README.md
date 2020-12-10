@@ -4,6 +4,7 @@ TSP MPI OMP
 # "Experimento"
 El objetivo de esto es aprender a hacer un "BFS" usando stack y procesos sin pensar en procesos complejos como la reducción de matrices. Es decir, abstraernos.
 Crearlo en un archivo aparte: stack.cpp
+
 ## pasos
 - Leer la matriz
 - Poner 1 en un stack. Este será nuestro primer nodo visitado.
