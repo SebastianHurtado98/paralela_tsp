@@ -23,3 +23,11 @@ Estos son los problemas más grandes que tenemos que resolver para esta implemen
     - Scatter, Scatterv
 - ¿Cómo podemos iterar este proceso hasta que el stack tenga todos los nodos?
     - While (?)
+
+
+iniciar todos los procesos con los datos necesarios
+inicializar un vector del tamaño de procesos.
+En ese vector, pones los valores a los cuales vas. Si el valor es -1, no vas. 
+Por lo tanto, ese proceso no sirve para la iteración.
+Gather de distancias para coger el minimo. Luego, comparas los minimos de todas las iteraciones.
+
