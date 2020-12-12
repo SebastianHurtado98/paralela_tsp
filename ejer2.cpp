@@ -89,6 +89,13 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
 
 int main(int argc, char **argv)
 {
+    /*
+    Pendientes: 
+    Tomar en cuenta distancia + prev_rc para escoger la min distancia.
+    Coger la min_matrix y reemplazar la matrix. 
+    Tener un while con queue para repetir la operacion.
+    */
+
     int world_rank;
     int world_size;
 
