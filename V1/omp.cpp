@@ -1,120 +1,191 @@
 #include <iostream>
-#include <limits>
+#include <vector>
+#include <climits>
+#include <queue>
 #include <omp.h>
-#include <algorithm>
-#include <iterator>
-#include <iomanip>
 
 using namespace std;
 
-//Esto está así por si necesitamos modificar las dimensiones en caso el
-//speed up no se note tan bien.
-typedef int DIM1;
-typedef int DIM2;
-DIM2 MAX_DIM2 = numeric_limits<DIM2>::max();
+class Node
+{
+public:
+    vector<pair<int, int>> path;
+    vector<vector<int>> matrix;
+    int cost;
+    int v;
+    int level;
+
+public:
+    Node(int n, vector<vector<int>> matrix, vector<pair<int, int>> const &path, int level, int i, int j)
+    {
+        this->path = path;
+
+        if (level != 0)
+        {
+            this->path.push_back({i, j});
+        }
+
+        this->matrix = matrix;
+
+        for (int k = 0; level != 0 && k < n; k++)
+        {
+            this->matrix[i][k] = INT_MAX;
+            this->matrix[k][j] = INT_MAX;
+        }
+
+        this->matrix[j][0] = INT_MAX;
+        this->level = level;
+        this->v = j;
+    }
+};
+
+int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
+{
+    int min;
+
+    vector<int> rc(n);
+    int i, j;
+
+    #pragma omp parallel for private(j, min) shared(i, mat, rc)
+    for (i = 0; i < n; i++)
+    {
+        min = INT_MAX;
+        for (j = 0; j < n; j++)
+        {
+            if (min > mat[i][j])
+            {
+                min = mat[i][j];
+            }
+        }
+
+        if (min != 0 && min != INT_MAX)
+        {
+            for (j = 0; j < n; j++)
+            {
+                if (mat[i][j] != INT_MAX)
+                {
+                    mat[i][j] -= min;
+                }
+            }
+            rc[i] = min;
+        }
+        else
+        {
+            rc[i] = 0;
+        }
+    }
+
+    #pragma omp parallel for private(i, min) shared(j, mat, rc)
+    for (j = 0; j < n; j++)
+    {
+        min = INT_MAX;
+        for (i = 0; i < n; i++)
+        {
+            if (min > mat[i][j])
+            {
+                min = mat[i][j];
+            }
+        }
+
+        if (min != 0 && min != INT_MAX)
+        {
+            for (i = 0; i < n; i++)
+            {
+                if (mat[i][j] != INT_MAX)
+                {
+                    mat[i][j] -= min;
+                }
+            }
+            rc[j] += min;
+        }
+    }
+
+    int cost = 0;
+    for (int i = 0; i < n; i++)
+    {
+        cost += rc[i];
+    }
+
+    return cost + prev_cost;
+}
+
+struct cmp
+{
+    bool operator()(const Node *a, const Node *b) const
+    {
+        return a->cost > b->cost;
+    }
+};
+
+void display(vector<pair<int, int>> path)
+{
+    for (int i = 0; i < path.size(); i++)
+    {
+        cout << path[i].first + 1 << " -> " << path[i].second + 1 << endl;
+    }
+}
+
+int tsp(vector<vector<int>> matrix, int n)
+{
+    priority_queue<Node *, vector<Node *>, cmp> pq;
+    vector<pair<int, int>> p;
+
+    Node *root = new Node(n, matrix, p, 0, -1, 0);
+
+    root->cost = get_min_and_substract(n, root->matrix, 0);
+
+    pq.push(root);
+
+    while (!pq.empty())
+    {
+        Node *min = pq.top();
+        pq.pop();
+
+        int i = min->v;
+
+        if (min->level == n - 1)
+        {
+            min->path.push_back({i, 0});
+            display(min->path);
+            return min->cost;
+        }
+
+        for (int j = 0; j < n; j++)
+        {
+            if (min->matrix[i][j] != INT_MAX)
+            {
+                Node *child = new Node(n, min->matrix, min->path, min->level + 1, i, j);
+                child->cost = min->matrix[i][j] + get_min_and_substract(n, child->matrix, min->cost);
+                pq.push(child);
+            }
+        }
+    }
+}
 
 int main()
 {
-    //Listas enlazadas. El grafo va a tener DEMASIADOS infinitos si no.
-
-    DIM1 n;
-    DIM2 temp;
+    int n;
     cin >> n;
-    DIM2 **matriz = new DIM2 *[n];
 
-    omp_set_num_threads(5);
+    vector<vector<int>> matrix(n, vector<int>(n));
 
-    double t1 = omp_get_wtime();
-
-    DIM1 i;
-
-    for (i = 0; i < n; i++)
+    for (int i = 0; i < n; i++)
     {
-        matriz[i] = new DIM2[n];
-        for (DIM1 j = 0; j < n; j++)
+        for (int j = 0; j < n; j++)
         {
+            int temp;
             cin >> temp;
-            if (temp != -1)
-                matriz[i][j] = temp;
+            if (temp == -1)
+            {
+                matrix[i][j] = INT_MAX;
+            }
             else
-                matriz[i][j] = MAX_DIM2;
+            {
+                matrix[i][j] = temp;
+            }
         }
     }
 
-    DIM2 min;
-
-    
-    DIM2 *reduced_counter = new DIM2[n];
-
-    // Get min value in each row and substract
-
-    #pragma omp parallel for private(i, min) shared(matriz, reduced_counter)
-    for (i = 0; i < n; i++)
-    {
-        min = MAX_DIM2;
-        //GET MIN VALUE
-        for (DIM1 j = 0; j < n; j++)
-        {
-            if (min > matriz[i][j])
-            {
-                min = matriz[i][j];
-            }
-        }
-
-        //SUBSTRACT MIN VALUE
-        if (min != 0 && min != MAX_DIM2)
-        {
-            
-            for (DIM1 j = 0; j < n; j++)
-            {
-                if (matriz[i][j] != MAX_DIM2)
-                {
-                    matriz[i][j] -= min;
-                }
-            }
-            reduced_counter[i] = min;
-        } else {
-            reduced_counter[i] = 0;
-        }
-    }
-
-    // Get min value in each column and substract
-
-    #pragma omp parallel for private(i, min) shared(matriz, reduced_counter)
-    for (i = 0; i < n; i++)
-    {
-        min = MAX_DIM2;
-        //GET MIN VALUE
-        for (DIM1 j = 0; j < n; j++)
-        {
-            if (min > matriz[j][i])
-            {
-                min = matriz[j][i];
-            }
-        }
-        
-        //SUBSTRACT MIN VALUE
-        if (min != 0 && min != MAX_DIM2)
-        {
-            for (DIM1 j = 0; j < n; j++)
-            {
-                if (matriz[j][i] != MAX_DIM2)
-                {
-                    matriz[j][i] -= min;
-                }
-            }
-            
-            reduced_counter[i] += min;
-        }
-    }
-    
-    DIM2 total_reduced_counter = 0;
-    for (i = 0; i < n; i++) total_reduced_counter += reduced_counter[i];
-
-
-    double t2 = omp_get_wtime();
-
-    cout << "RC: " << total_reduced_counter << endl;
-
-    cout << setprecision(8) << "Time: " << t2 - t1 << endl;
+    int res = tsp(matrix, n);
+    cout << res << endl;
 }
