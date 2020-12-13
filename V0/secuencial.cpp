@@ -2,7 +2,6 @@
 #include <vector>
 #include <climits>
 #include <queue>
-#include <omp.h>
 
 using namespace std;
 
@@ -46,7 +45,6 @@ int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
     vector<int> rc(n);
     int i, j;
 
-    #pragma omp parallel for private(j, min) shared(i, mat, rc)
     for (i = 0; i < n; i++)
     {
         min = INT_MAX;
@@ -75,7 +73,6 @@ int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
         }
     }
 
-    #pragma omp parallel for private(i, min) shared(j, mat, rc)
     for (j = 0; j < n; j++)
     {
         min = INT_MAX;
