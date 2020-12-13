@@ -1,22 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <climits>
+#include <algorithm>
 #include <queue>
 #include <omp.h>
 
 using namespace std;
 
+#define lli long long int
+
 class Node
 {
 public:
-    vector<pair<int, int>> path;
-    vector<vector<int>> matrix;
-    int cost;
-    int v;
-    int level;
+    vector<pair<lli, lli>> path;
+    vector<vector<lli>> matrix;
+    lli cost;
+    lli v;
+    lli level;
 
 public:
-    Node(int n, vector<vector<int>> matrix, vector<pair<int, int>> const &path, int level, int i, int j)
+    Node(lli n, vector<vector<lli>> matrix, vector<pair<lli, lli>> const &path, lli level, lli i, lli j)
     {
         this->path = path;
 
@@ -27,7 +30,7 @@ public:
 
         this->matrix = matrix;
 
-        for (int k = 0; level != 0 && k < n; k++)
+        for (lli k = 0; level != 0 && k < n; k++)
         {
             this->matrix[i][k] = INT_MAX;
             this->matrix[k][j] = INT_MAX;
@@ -39,12 +42,12 @@ public:
     }
 };
 
-int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
+lli get_min_and_substract(lli n, vector<vector<lli>> &mat, lli prev_cost)
 {
-    int min;
+    lli min;
 
-    vector<int> rc(n);
-    int i, j;
+    vector<lli> rc(n);
+    lli i, j;
 
     #pragma omp parallel for private(j, min) shared(i, mat, rc)
     for (i = 0; i < n; i++)
@@ -100,8 +103,8 @@ int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
         }
     }
 
-    int cost = 0;
-    for (int i = 0; i < n; i++)
+    lli cost = 0;
+    for (lli i = 0; i < n; i++)
     {
         cost += rc[i];
     }
@@ -117,7 +120,7 @@ struct cmp
     }
 };
 
-void display(vector<pair<int, int>> path)
+void display(vector<pair<lli, lli>> path)
 {
     for (int i = 0; i < path.size(); i++)
     {
@@ -125,10 +128,10 @@ void display(vector<pair<int, int>> path)
     }
 }
 
-int tsp(vector<vector<int>> matrix, int n)
+int tsp(vector<vector<lli>> matrix, lli n)
 {
     priority_queue<Node *, vector<Node *>, cmp> pq;
-    vector<pair<int, int>> p;
+    vector<pair<lli, lli>> p;
 
     Node *root = new Node(n, matrix, p, 0, -1, 0);
 
@@ -141,16 +144,17 @@ int tsp(vector<vector<int>> matrix, int n)
         Node *min = pq.top();
         pq.pop();
 
-        int i = min->v;
+        lli i = min->v;
+        lli j;
 
         if (min->level == n - 1)
         {
             min->path.push_back({i, 0});
-            display(min->path);
+            //display(min->path);
             return min->cost;
         }
 
-        for (int j = 0; j < n; j++)
+        for (j = 0; j < n; j++)
         {
             if (min->matrix[i][j] != INT_MAX)
             {
@@ -162,33 +166,30 @@ int tsp(vector<vector<int>> matrix, int n)
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    int n = 5;
+    lli n;
+    cin >> n;
 
-    srand(time(NULL));
+    vector<vector<lli>> matrix(n, vector<lli>(n));
 
-    vector<vector<int>> matrix(n, vector<int>(n));
-
-    for (int i = 0; i < n; i++)
+    for (lli i = 0; i < n; i++)
     {
-        for (int j = 0; j < n; j++)
+        for (lli j = 0; j < n; j++)
         {
-            matrix[i][j] = rand() % 1000;
-        }
-    }
-
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            if (i == j)
-            {
+            lli temp;
+            cin >> temp;
+            if (temp == -1) {
                 matrix[i][j] = INT_MAX;
+            } else {
+                matrix[i][j] = temp;
             }
         }
     }
 
-    int res = tsp(matrix, n);
-    cout << res << endl;
+    double t1 = omp_get_wtime();
+    lli res = tsp(matrix, n);
+    double t2 = omp_get_wtime();
+
+    cout << t2 - t1 << endl;
 }

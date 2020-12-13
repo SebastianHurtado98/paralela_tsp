@@ -8,7 +8,6 @@
 #include <omp.h>
 #include <queue>
 
-
 using namespace std;
 
 int get_min_and_substract(int n, int mat[], int h_r, int h_c)
@@ -18,16 +17,18 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
     int *rc = new int[n];
     int i, j;
 
-    if (h_c != -1 && h_r != -1) {
-        for (int i = 0; i < n; i++) {
+    if (h_c != -1 && h_r != -1)
+    {
+        for (int i = 0; i < n; i++)
+        {
             mat[(h_r * n) + i] = INT_MAX;
             mat[(i * n) + h_c] = INT_MAX;
         }
 
-        mat[(h_c*n) + h_r] = INT_MAX;
+        mat[(h_c * n) + h_r] = INT_MAX;
     }
 
-    #pragma omp parallel for private(j, min) shared(i, mat, rc)
+#pragma omp parallel for private(j, min) shared(i, mat, rc)
     for (i = 0; i < n; i++)
     {
         min = INT_MAX;
@@ -49,12 +50,14 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
                 }
             }
             rc[i] = min;
-        } else {
+        }
+        else
+        {
             rc[i] = 0;
         }
     }
 
-    #pragma omp parallel for private(i, min) shared(j, mat, rc)
+#pragma omp parallel for private(i, min) shared(j, mat, rc)
     for (j = 0; j < n; j++)
     {
         min = INT_MAX;
@@ -76,7 +79,7 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
                 }
             }
             rc[j] += min;
-        }   
+        }
     }
 
     int total_rc = 0;
@@ -86,7 +89,6 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
     }
     return total_rc;
 }
-
 
 int main(int argc, char **argv)
 {
@@ -106,9 +108,9 @@ int main(int argc, char **argv)
     int n;
 
     int *matrix, *original_matrix;
-    
+
     int i = 0;
-    
+
     int origin = 0;
 
     //Pre processing first matrix
@@ -118,12 +120,12 @@ int main(int argc, char **argv)
     ifstream ifs("input.txt");
     ifs >> n;
 
+<<<<<<< Updated upstream
     vecinos = new int[n]; 
-
+=======
+    //vecinos = new int[n];
+>>>>>>> Stashed changes
     matrix = (int *)malloc(n * n * sizeof(int));
-    original_matrix = (int *)malloc(n * n * sizeof(int));
-
-    for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
@@ -150,10 +152,10 @@ int main(int argc, char **argv)
         }
     }
 
-    for (int k = 0; k < n; k++) vecinos[k] = original_matrix[(origin*n) + k];
+    for (int k = 0; k < n; k++)
+        vecinos[k] = original_matrix[(origin * n) + k];
 
     cnt_v = 0;
-
 
     //Variables para seleccionar el mejor valor
     int rc_parcial_min = INT_MAX;
@@ -176,57 +178,67 @@ int main(int argc, char **argv)
         i++;
         if (cnt_v == world_size - 1 || i == n)
         {
-            if (cnt_v < world_size - 1)
+            if (matrix[(origin * n) + i] != INT_MAX)
             {
-                for (int k = cnt_v; k < world_size - 1; k++)
-                    vecinos_por_visitar[k] = -1;
+                vecinos_por_visitar[cnt_v] = i;
+                cnt_v++;
             }
-            
+            i++;
+            if (cnt_v == world_size - 1 || i == n)
+            {
+                if (cnt_v < world_size - 1)
+                {
+                    for (int k = cnt_v; k < world_size - 1; k++)
+                        vecinos_por_visitar[k] = -1;
+                }
 
-            if (world_rank == 0) {
-                for (int k = 0; k < world_size - 1; k++) {
-                    MPI_Send(&origin, 1, MPI_INT, k+1, 0, MPI_COMM_WORLD);
-                    MPI_Send(&vecinos_por_visitar[k], 1, MPI_INT, k+1, 1, MPI_COMM_WORLD);
-                    MPI_Send(matrix, n * n, MPI_INT, k+1, 2, MPI_COMM_WORLD);
-                    cout << "desde 0 mando " << vecinos_por_visitar[k] << " a " << k+1<< endl;
-                    MPI_Recv(&rc_parcial, 1, MPI_INT, k + 1, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    MPI_Recv(matrix_parcial_rc, n*n, MPI_INT, k + 1, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    distance = original_matrix[(origin * n) + vecinos_por_visitar[k]];
+                if (world_rank == 0)
+                {
+                    for (int k = 0; k < world_size - 1; k++)
+                    {
+                        MPI_Send(&origin, 1, MPI_INT, k + 1, 0, MPI_COMM_WORLD);
+                        MPI_Send(&vecinos_por_visitar[k], 1, MPI_INT, k + 1, 1, MPI_COMM_WORLD);
+                        MPI_Send(matrix, n * n, MPI_INT, k + 1, 2, MPI_COMM_WORLD);
+                        cout << "desde 0 mando " << vecinos_por_visitar[k] << " a " << k + 1 << endl;
+                        MPI_Recv(&rc_parcial, 1, MPI_INT, k + 1, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(matrix_parcial_rc, n * n, MPI_INT, k + 1, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        distance = original_matrix[(origin * n) + vecinos_por_visitar[k]];
 
-                    if (rc_parcial != -1 && distance != INT_MAX) {
-                        rc_parcial = rc_parcial + distance + reduced_counter;
-                        if (rc_parcial < rc_parcial_min) {
-                            rc_parcial_min = rc_parcial;
-                            matrix_min_rc = matrix_parcial_rc;
-                            next_origin = vecinos_por_visitar[k];
+                        if (rc_parcial != -1 && distance != INT_MAX)
+                        {
+                            rc_parcial = rc_parcial + distance + reduced_counter;
+                            if (rc_parcial < rc_parcial_min)
+                            {
+                                rc_parcial_min = rc_parcial;
+                                matrix_min_rc = matrix_parcial_rc;
+                                next_origin = vecinos_por_visitar[k];
+                            }
                         }
                     }
                 }
-            } else {
-                MPI_Recv(&origin, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                MPI_Recv(&number, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                //Reemplazar por matriz
-                //Obtener 
-                MPI_Recv(matrix, n * n, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                
-                if (number != -1) rc_parcial = get_min_and_substract(n, matrix, origin, number);
-                else rc_parcial = -1;
+                else
+                {
+                    MPI_Recv(&origin, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    MPI_Recv(&number, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                    //Reemplazar por matriz
+                    //Obtener
+                    MPI_Recv(matrix, n * n, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
-                MPI_Send(&rc_parcial, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
-                MPI_Send(matrix, n * n, MPI_INT, 0, 4, MPI_COMM_WORLD);
-                cout << "desde " << world_rank << endl;
-                
+                    if (number != -1)
+                        rc_parcial = get_min_and_substract(n, matrix, origin, number);
+                    else
+                        rc_parcial = -1;
+
+                    MPI_Send(&rc_parcial, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
+                    MPI_Send(matrix, n * n, MPI_INT, 0, 4, MPI_COMM_WORLD);
+                    cout << "desde " << world_rank << endl;
+                }
+
+                for (int k = 0; k < world_size - 1; k++)
+                    vecinos_por_visitar[k] = 0;
+                cnt_v = 0;
             }
-
-              for (int k = 0; k < world_size - 1; k++)
-                vecinos_por_visitar[k] = 0;
-            cnt_v = 0;
         }
-    }
-    
-    if (world_rank == 0) cout << endl << "El siguiente vecino es " << next_origin;
-    i = 0; origin = next_origin; reduced_counter = rc_parcial_min; matrix = matrix_min_rc; rc_parcial_min = INT_MAX;
-    //for (int k = 0; k < n; k++) vecinos[k] = original_matrix[(origin*n) + k];
 
     
     MPI_Finalize();

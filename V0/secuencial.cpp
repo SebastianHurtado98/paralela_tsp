@@ -1,22 +1,25 @@
 #include <iostream>
 #include <vector>
 #include <climits>
+#include <algorithm>
 #include <queue>
 #include <chrono>
 
 using namespace std;
 
+#define lli long long int
+
 class Node
 {
 public:
-    vector<pair<int, int>> path;
-    vector<vector<int>> matrix;
-    int cost;
-    int v;
-    int level;
+    vector<pair<lli, lli>> path;
+    vector<vector<lli>> matrix;
+    lli cost;
+    lli v;
+    lli level;
 
 public:
-    Node(int n, vector<vector<int>> matrix, vector<pair<int, int>> const &path, int level, int i, int j)
+    Node(lli n, vector<vector<lli>> matrix, vector<pair<lli, lli>> const &path, lli level, lli i, lli j)
     {
         this->path = path;
 
@@ -27,7 +30,7 @@ public:
 
         this->matrix = matrix;
 
-        for (int k = 0; level != 0 && k < n; k++)
+        for (lli k = 0; level != 0 && k < n; k++)
         {
             this->matrix[i][k] = INT_MAX;
             this->matrix[k][j] = INT_MAX;
@@ -39,12 +42,12 @@ public:
     }
 };
 
-int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
+lli get_min_and_substract(lli n, vector<vector<lli>> &mat, lli prev_cost)
 {
-    int min;
+    lli min;
 
-    vector<int> rc(n);
-    int i, j;
+    vector<lli> rc(n);
+    lli i, j;
 
     for (i = 0; i < n; i++)
     {
@@ -98,8 +101,8 @@ int get_min_and_substract(int n, vector<vector<int>> &mat, int prev_cost)
         }
     }
 
-    int cost = 0;
-    for (int i = 0; i < n; i++)
+    lli cost = 0;
+    for (lli i = 0; i < n; i++)
     {
         cost += rc[i];
     }
@@ -115,18 +118,18 @@ struct cmp
     }
 };
 
-void display(vector<pair<int, int>> path)
+void display(vector<pair<lli, lli>> path)
 {
     for (int i = 0; i < path.size(); i++)
     {
-        cout << path[i].first + 1 << " -> " << path[i].second + 1 << endl;
+        std::cout << path[i].first + 1 << " -> " << path[i].second + 1 << endl;
     }
 }
 
-int tsp(vector<vector<int>> matrix, int n)
+int tsp(vector<vector<lli>> matrix, lli n)
 {
     priority_queue<Node *, vector<Node *>, cmp> pq;
-    vector<pair<int, int>> p;
+    vector<pair<lli, lli>> p;
 
     Node *root = new Node(n, matrix, p, 0, -1, 0);
 
@@ -139,7 +142,7 @@ int tsp(vector<vector<int>> matrix, int n)
         Node *min = pq.top();
         pq.pop();
 
-        int i = min->v;
+        lli i = min->v;
 
         if (min->level == n - 1)
         {
@@ -160,37 +163,30 @@ int tsp(vector<vector<int>> matrix, int n)
     }
 }
 
-int main()
+int main(int argc, char **argv)
 {
-    int n = 5;
+    lli n;
+    cin >> n;
 
-    srand(time(NULL));
-
-    vector<vector<int>> matrix(n, vector<int>(n));
-
-    for (int i = 0; i < n; i++)
-    {
-        for (int j = 0; j < n; j++)
-        {
-            matrix[i][j] = rand() % 1000;
-        }
-    }
+    vector<vector<lli>> matrix(n, vector<lli>(n));
 
     for (int i = 0; i < n; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            if (i == j)
-            {
+            int temp;
+            cin >> temp;
+            if (temp == -1) {
                 matrix[i][j] = INT_MAX;
+            } else {
+                matrix[i][j] = temp;
             }
         }
     }
 
-    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
-    int res = tsp(matrix, n);
-    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+    auto begin = chrono::high_resolution_clock::now();
+    lli res = tsp(matrix, n);
+    auto end = chrono::high_resolution_clock::now();
 
-    cout << "Time difference = " << chrono::duration_cast<chrono::microseconds> (end - begin).count() << "[µs]" << endl;
-    cout << "Time difference = " << chrono::duration_cast<chrono::nanoseconds> (end - begin).count() << "[ns]" << endl;
+    std::cout << chrono::duration<float>(end - begin).count() << endl;
 }
