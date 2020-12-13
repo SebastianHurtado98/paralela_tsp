@@ -164,8 +164,9 @@ int tsp(vector<vector<int>> matrix, int n)
 
 int main()
 {
-    int n;
-    cin >> n;
+    int n = 5;
+
+    srand(time(NULL));
 
     vector<vector<int>> matrix(n, vector<int>(n));
 
@@ -173,15 +174,17 @@ int main()
     {
         for (int j = 0; j < n; j++)
         {
-            int temp;
-            cin >> temp;
-            if (temp == -1)
+            matrix[i][j] = rand() % 1000;
+        }
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (i == j)
             {
                 matrix[i][j] = INT_MAX;
-            }
-            else
-            {
-                matrix[i][j] = temp;
             }
         }
     }

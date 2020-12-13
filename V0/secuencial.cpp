@@ -2,6 +2,7 @@
 #include <vector>
 #include <climits>
 #include <queue>
+#include <chrono>
 
 using namespace std;
 
@@ -143,7 +144,7 @@ int tsp(vector<vector<int>> matrix, int n)
         if (min->level == n - 1)
         {
             min->path.push_back({i, 0});
-            display(min->path);
+            //display(min->path);
             return min->cost;
         }
 
@@ -161,8 +162,9 @@ int tsp(vector<vector<int>> matrix, int n)
 
 int main()
 {
-    int n;
-    cin >> n;
+    int n = 5;
+
+    srand(time(NULL));
 
     vector<vector<int>> matrix(n, vector<int>(n));
 
@@ -170,19 +172,25 @@ int main()
     {
         for (int j = 0; j < n; j++)
         {
-            int temp;
-            cin >> temp;
-            if (temp == -1)
+            matrix[i][j] = rand() % 1000;
+        }
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (i == j)
             {
                 matrix[i][j] = INT_MAX;
-            }
-            else
-            {
-                matrix[i][j] = temp;
             }
         }
     }
 
+    chrono::steady_clock::time_point begin = chrono::steady_clock::now();
     int res = tsp(matrix, n);
-    cout << res << endl;
+    chrono::steady_clock::time_point end = chrono::steady_clock::now();
+
+    cout << "Time difference = " << chrono::duration_cast<chrono::microseconds> (end - begin).count() << "[µs]" << endl;
+    cout << "Time difference = " << chrono::duration_cast<chrono::nanoseconds> (end - begin).count() << "[ns]" << endl;
 }
