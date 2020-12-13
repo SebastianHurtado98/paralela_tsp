@@ -19,24 +19,24 @@ public:
     lli level;
 
 public:
-    Node(lli n, vector<vector<lli>> matrix, vector<pair<lli, lli>> const &path, lli level, lli i, lli j)
+    Node(lli n, vector<vector<lli>> matrix, vector<pair<lli, lli>> const &path, lli level, lli a, lli b)
     {
         this->path = path;
 
         if (level != 0)
         {
-            this->path.push_back({i, j});
+            this->path.push_back({a, b});
         }
 
         this->matrix = matrix;
 
         for (lli k = 0; level != 0 && k < n; k++)
         {
-            this->matrix[i][k] = INT_MAX;
-            this->matrix[k][j] = INT_MAX;
+            this->matrix[a][k] = INT_MAX;
+            this->matrix[k][b] = INT_MAX;
         }
 
-        this->matrix[j][0] = INT_MAX;
+        this->matrix[b][0] = INT_MAX;
         this->level = level;
         this->v = j;
     }
@@ -118,20 +118,14 @@ struct cmp
     }
 };
 
-void display(vector<pair<lli, lli>> path)
-{
-    for (int i = 0; i < path.size(); i++)
-    {
-        std::cout << path[i].first + 1 << " -> " << path[i].second + 1 << endl;
-    }
-}
-
 int tsp(vector<vector<lli>> matrix, lli n)
 {
     priority_queue<Node *, vector<Node *>, cmp> pq;
     vector<pair<lli, lli>> p;
 
     Node *root = new Node(n, matrix, p, 0, -1, 0);
+
+    int count = 0;
 
     root->cost = get_min_and_substract(n, root->matrix, 0);
 
@@ -147,7 +141,6 @@ int tsp(vector<vector<lli>> matrix, lli n)
         if (min->level == n - 1)
         {
             min->path.push_back({i, 0});
-            //display(min->path);
             return min->cost;
         }
 
@@ -161,12 +154,12 @@ int tsp(vector<vector<lli>> matrix, lli n)
             }
         }
     }
+
 }
 
-int main(int argc, char **argv)
+int main()
 {
-    lli n;
-    cin >> n;
+    lli n = 32;
 
     vector<vector<lli>> matrix(n, vector<lli>(n));
 
@@ -174,12 +167,17 @@ int main(int argc, char **argv)
     {
         for (int j = 0; j < n; j++)
         {
-            int temp;
-            cin >> temp;
-            if (temp == -1) {
+            matrix[i][j] = rand() % 100;
+        }
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        for (int j = 0; j < n; j++)
+        {
+            if (i == j)
+            {
                 matrix[i][j] = INT_MAX;
-            } else {
-                matrix[i][j] = temp;
             }
         }
     }
