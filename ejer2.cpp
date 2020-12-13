@@ -6,6 +6,8 @@
 #include <fstream>
 #include <openmpi/mpi.h>
 #include <omp.h>
+#include <queue>
+
 
 using namespace std;
 
@@ -82,7 +84,6 @@ int get_min_and_substract(int n, int mat[], int h_r, int h_c)
     {
         total_rc += rc[i];
     }
-
     return total_rc;
 }
 
@@ -98,8 +99,8 @@ int main(int argc, char **argv)
 
     int world_rank;
     int world_size;
-
-    int vecinos[5] = {-1, 20, 30, 10, 11}, n_procesos = 4, cnt_v = 0, number;
+    
+    int vecinos[5] = {-1, 20, 30, 10, 11}, n_procesos = 4, cnt_v = 0, number, distance, next_origin;
     int *vecinos_por_visitar = new int[n_procesos - 1];
 
     int n;
@@ -140,8 +141,6 @@ int main(int argc, char **argv)
     }
 
     int reduced_counter = get_min_and_substract(n, matrix, -1, -1);
-    
-    printf("rc: %i\n", reduced_counter);
 
     for (int i = 0; i < n; i++)
     {
@@ -166,11 +165,12 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     
-
-
+    //SACA EL FOR PARA QUE FUNCIONE UNA ITERACION
+    for (int q = 0; q < 4; q++) {
+    
     while (i < n)
-    {
-        if (vecinos[i] != -1)
+    { 
+        if (matrix[(origin * n) + i] != INT_MAX)
         {
             vecinos_por_visitar[cnt_v] = i;
             cnt_v++;
@@ -190,38 +190,48 @@ int main(int argc, char **argv)
                     MPI_Send(&origin, 1, MPI_INT, k+1, 0, MPI_COMM_WORLD);
                     MPI_Send(&vecinos_por_visitar[k], 1, MPI_INT, k+1, 1, MPI_COMM_WORLD);
                     MPI_Send(matrix, n * n, MPI_INT, k+1, 2, MPI_COMM_WORLD);
+                    cout << "desde 0 mando " << vecinos_por_visitar[k] << " a " << k+1<< endl;
                     MPI_Recv(&rc_parcial, 1, MPI_INT, k + 1, 3, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                     MPI_Recv(matrix_parcial_rc, n*n, MPI_INT, k + 1, 4, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                    if (rc_parcial < rc_parcial_min) {
-                        rc_parcial_min = rc_parcial;
-                        matrix_min_rc = matrix_parcial_rc;
+                    distance = original_matrix[(origin * n) + vecinos_por_visitar[k]];
+
+                    if (rc_parcial != -1 && distance != INT_MAX) {
+                        rc_parcial = rc_parcial + distance + reduced_counter;
+                        if (rc_parcial < rc_parcial_min) {
+                            rc_parcial_min = rc_parcial;
+                            matrix_min_rc = matrix_parcial_rc;
+                            next_origin = vecinos_por_visitar[k];
+                        }
                     }
                 }
-
             } else {
                 MPI_Recv(&origin, 1, MPI_INT, 0, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 MPI_Recv(&number, 1, MPI_INT, 0, 1, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                 //Reemplazar por matriz
                 //Obtener 
                 MPI_Recv(matrix, n * n, MPI_INT, 0, 2, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-
+                
                 if (number != -1) rc_parcial = get_min_and_substract(n, matrix, origin, number);
-                else rc_parcial = INT_MAX;
+                else rc_parcial = -1;
 
                 MPI_Send(&rc_parcial, 1, MPI_INT, 0, 3, MPI_COMM_WORLD);
                 MPI_Send(matrix, n * n, MPI_INT, 0, 4, MPI_COMM_WORLD);
+                cout << "desde " << world_rank << endl;
                 
             }
 
-            cout << endl;
-            
-            for (int k = 0; k < world_size - 1; k++)
+              for (int k = 0; k < world_size - 1; k++)
                 vecinos_por_visitar[k] = 0;
             cnt_v = 0;
         }
     }
+    
+    if (world_rank == 0) cout << endl << "El siguiente vecino es " << next_origin;
+    i = 0; origin = next_origin; reduced_counter = rc_parcial_min; matrix = matrix_min_rc; rc_parcial_min = INT_MAX;
+    //for (int k = 0; k < n; k++) vecinos[k] = original_matrix[(origin*n) + k];
 
-    if (world_rank == 0) cout << endl << "MIN RC " << rc_parcial_min;
+    }
+
     
     MPI_Finalize();
 }
