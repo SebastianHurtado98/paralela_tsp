@@ -38,7 +38,7 @@ public:
 
         this->matrix[b][0] = INT_MAX;
         this->level = level;
-        this->v = j;
+        this->v = b;
     }
 };
 
