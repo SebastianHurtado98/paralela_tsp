@@ -110,9 +110,10 @@ lli get_min_and_substract(lli n, vector<vector<lli>> &mat, lli prev_cost)
     return cost + prev_cost;
 }
 
-struct cmp
+class cmp
 {
-    bool operator()(const Node *a, const Node *b) const
+public:
+    bool operator() (Node *a, Node *b)
     {
         return a->cost > b->cost;
     }
@@ -154,7 +155,6 @@ int tsp(vector<vector<lli>> matrix, lli n)
             }
         }
     }
-
 }
 
 int main()
