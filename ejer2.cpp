@@ -100,7 +100,7 @@ int main(int argc, char **argv)
     int world_rank;
     int world_size;
     
-    int vecinos[5] = {-1, 20, 30, 10, 11}, n_procesos = 4, cnt_v = 0, number, distance, next_origin;
+    int *vecinos, n_procesos = 4, cnt_v = 0, number, distance, next_origin;
     int *vecinos_por_visitar = new int[n_procesos - 1];
 
     int n;
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
     ifstream ifs("input.txt");
     ifs >> n;
 
-    //vecinos = new int[n]; 
+    vecinos = new int[n]; 
 
     matrix = (int *)malloc(n * n * sizeof(int));
     original_matrix = (int *)malloc(n * n * sizeof(int));
@@ -165,9 +165,7 @@ int main(int argc, char **argv)
     MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
     MPI_Comm_size(MPI_COMM_WORLD, &world_size);
     
-    //SACA EL FOR PARA QUE FUNCIONE UNA ITERACION
-    for (int q = 0; q < 4; q++) {
-    
+
     while (i < n)
     { 
         if (matrix[(origin * n) + i] != INT_MAX)
@@ -229,8 +227,6 @@ int main(int argc, char **argv)
     if (world_rank == 0) cout << endl << "El siguiente vecino es " << next_origin;
     i = 0; origin = next_origin; reduced_counter = rc_parcial_min; matrix = matrix_min_rc; rc_parcial_min = INT_MAX;
     //for (int k = 0; k < n; k++) vecinos[k] = original_matrix[(origin*n) + k];
-
-    }
 
     
     MPI_Finalize();
