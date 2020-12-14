@@ -2,7 +2,7 @@
 using namespace std;
 
 int main() {
-    int n=8, vecinos[n] = {-1, 2, -1, 3, 4, 2, -1, 2}, n_procesos = 4, cnt_v = 0;
+    int n=5, vecinos[n] = {-1, 1, 2, 3, 4}, n_procesos = 8, cnt_v = 0;
     int *vecinos_por_visitar = new int[n_procesos - 1];
     int i = 0;
     while(i < n) {

@@ -1,5 +1,5 @@
-vecinos = [-1, 2, -1]
-n_procesos = 4
+vecinos = [-1, 1, 2, 3, 4]
+n_procesos = 3
 
 cnt_v = 0
 vecinos_por_visitar = list()
